@@ -293,6 +293,7 @@ void Init_Beatmap(void) {
 
       EndTextureMode();
       UnloadTexture(BG_Blurred_Texture);
+      UnloadTexture(BG_Image_RAW);
       UnloadImage(BG_Blurred);
     } else {
 
