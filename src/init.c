@@ -1,3 +1,31 @@
+/*
+ *  init.c
+ *
+ *  code that runs at init.
+ *
+ *  Copyright (C) 2026 RafiOnKomputer
+ *
+ *  This file is part of C-OSU.
+ *
+ *  C-OSU is free software: you can redistribute it and/or modify it
+ *  under the terms of the GNU General Public License as published by the Free
+ *  Software Foundation, either version 3 of the License, or (at your option)
+ *  any later version.
+ *
+ *  C-OSU is distributed in the hope that it will be useful, but WITHOUT
+ *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ *  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ *  more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ * with C-OSU. If not, see <https://www.gnu.org/licenses/>.
+ *
+ *  DESCRIPTION :
+ *
+ *    - Sets Vsync and fullscreen
+ *    - Sets FPS limit
+ *    - Gets Screen Res
+ */                                                                            \
 #include "beatmap.h"
 #include "config.h"
 #include "cursor.h"
@@ -17,6 +45,8 @@ void Init_COSU(void) {
 #ifdef _WIN32
   SetProcessDPIAware();
 #endif
+
+  printf("\n\n=== C-OSU Alpha ===\n\n");
 
   LoadConfig();
 
@@ -50,10 +80,13 @@ void Init_COSU(void) {
   init_skin();
   Init_Cursor();
 
-  printf("Raylib OpenGL Backend: %d\n", rlGetVersion());
+  if (rlGetVersion() == RL_OPENGL_21) {
 
-  if (rlGetVersion() == RL_OPENGL_21)
-    printf("Raylib backend: OpenGL 2.1\n");
-  else if (rlGetVersion() == RL_OPENGL_33)
-    printf("Raylib backend: OpenGL 3.3\n");
+    printf("\nRaylib Backend: OpenGL 2.1\n");
+  }
+
+  else if (rlGetVersion() == RL_OPENGL_33) {
+
+    printf("\nRaylib Backend: OpenGL 3.3\n");
+  }
 }

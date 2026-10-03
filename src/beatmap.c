@@ -1,3 +1,35 @@
+/*
+ *  beatmap.c
+ *
+ *  OSU Map Loader.
+ *
+ *  Copyright (C) 2026 RafiOnKomputer
+ *
+ *  This file is part of C-OSU.
+ *
+ *  C-OSU is free software: you can redistribute it and/or modify it
+ *  under the terms of the GNU General Public License as published by the Free
+ *  Software Foundation, either version 3 of the License, or (at your option)
+ *  any later version.
+ *
+ *  C-OSU is distributed in the hope that it will be useful, but WITHOUT
+ *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ *  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ *  more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with
+ *  C-OSU. If not, see <https://www.gnu.org/licenses/>.
+ *
+ *  DESCRIPTION :
+ *
+ *    - Reads Map Data Such As : Music, Image, CS, OD, AR, Combo Colors and
+ *       Beatmap Objects
+ *    - Sets SoundBank for each circles
+ *    - Calculates OSU Playfield to Screen Cords
+ *    - Setup Bg Image
+ *    - Calculates AR, OD,CS
+ */
+
 #include "beatmap.h"
 #include "circle.h"
 #include "config.h"
