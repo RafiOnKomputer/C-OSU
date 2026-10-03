@@ -36,6 +36,8 @@ testing a GT730 soon
 
 # Building
 adding doc for building later 
+# Credits
+adding credits for maps and skins later
 
 # Licence
 [This Project is Licenced under GPL3](https://github.com/RafiOnKomputer/C-OSU/blob/main/LICENSE)
