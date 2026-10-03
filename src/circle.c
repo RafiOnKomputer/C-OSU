@@ -70,7 +70,7 @@ int Draw_HitCircle(HitCircle *circle) {
       float OverlayScale = (ScreenDiameter / SkinScaleMode) * Scale;
       float OverlayWidth = OverlayCircle.width * OverlayScale;
       float OverlayHeight = OverlayCircle.height * OverlayScale;
-
+      // test
       DrawTexturePro(
           OverlayCircle,
           (Rectangle){0, 0, OverlayCircle.width, OverlayCircle.height},
