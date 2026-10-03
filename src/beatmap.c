@@ -295,6 +295,7 @@ void Init_Beatmap(void) {
       UnloadTexture(BG_Blurred_Texture);
       UnloadTexture(BG_Image_RAW);
       UnloadImage(BG_Blurred);
+
     } else {
 
       // used for normal bg
