@@ -414,6 +414,8 @@ void Init_Beatmap(void) {
   if (tmp != NULL)
     circles = tmp;
 
+  fclose(f);
+
   end_time = circles[circle_count - 1].time;
   SkinScaleMode = config.hires ? 256.0f : 128.0f;
 }
