@@ -141,15 +141,20 @@ ROOT = $(shell whoami)
 HOST_PLATFORM_OS ?= WINDOWS
 PLATFORM_OS ?= WINDOWS
 
+# Detect the shell used by make: cmd preserves quotes, while sh removes them.
+ifndef PLATFORM_SHELL
+    PLATFORM_SHELL = sh
+    ifeq ($(shell echo "test"),"test")
+        PLATFORM_SHELL = cmd
+    endif
+endif
+
 # Determine PLATFORM_OS when required
 ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW PLATFORM_DESKTOP_SDL PLATFORM_DESKTOP_RGFW PLATFORM_DESKTOP_WIN32 PLATFORM_WEB PLATFORM_WEB_RGFW PLATFORM_ANDROID))
     # No uname.exe on MinGW!, but OS=Windows_NT on Windows!
     # ifeq ($(UNAME),Msys) -> Windows
     ifeq ($(OS),Windows_NT)
         PLATFORM_OS = WINDOWS
-        ifndef PLATFORM_SHELL
-            PLATFORM_SHELL = cmd
-        endif
     else
         UNAMEOS = $(shell uname)
         ifeq ($(UNAMEOS),Linux)
@@ -170,25 +175,12 @@ ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW PLATF
         ifeq ($(UNAMEOS),Darwin)
             PLATFORM_OS = OSX
         endif
-        ifndef PLATFORM_SHELL
-            PLATFORM_SHELL = sh
-        endif
     endif
 endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
     UNAMEOS = $(shell uname)
     ifeq ($(UNAMEOS),Linux)
         PLATFORM_OS = LINUX
-    endif
-    ifndef PLATFORM_SHELL
-        PLATFORM_SHELL = sh
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-    ifeq ($(PLATFORM_OS),LINUX)
-        ifndef PLATFORM_SHELL
-            PLATFORM_SHELL = sh
-        endif
     endif
 endif
 
@@ -257,11 +249,6 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
 endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_SDL)
     GRAPHICS ?= GRAPHICS_API_OPENGL_33
-	#GRAPHICS = GRAPHICS_API_OPENGL_SOFTWARE    # Uncomment to use software rendering
-    #GRAPHICS = GRAPHICS_API_OPENGL_11          # Uncomment to use OpenGL 1.1
-    #GRAPHICS = GRAPHICS_API_OPENGL_21          # Uncomment to use OpenGL 2.1
-    #GRAPHICS = GRAPHICS_API_OPENGL_43          # Uncomment to use OpenGL 4.3
-    #GRAPHICS = GRAPHICS_API_OPENGL_ES2         # Uncomment to use OpenGL ES 2.0 (ANGLE)
 endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_RGFW)
     GRAPHICS ?= GRAPHICS_API_OPENGL_33
@@ -383,7 +370,17 @@ endif
 #  -D_GNU_SOURCE            access to lots of nonstandard GNU/Linux extension functions
 #  -Werror=pointer-arith    catch unportable code that does direct arithmetic on void pointers
 #  -fno-strict-aliasing     jar_xm.h does shady stuff (breaks strict aliasing)
-CFLAGS = -Wall -D_GNU_SOURCE -D$(TARGET_PLATFORM) -D$(GRAPHICS) -Wno-missing-braces -Werror=pointer-arith -fno-strict-aliasing
+
+# NOTE: Native Linux links against glibc. On glibc >= 2.38, _GNU_SOURCE redirects
+# sscanf(), strtol()... to __isoc23_*(), so the library fails to link with older glibc.
+# Web and Android set PLATFORM_OS from the host, but they are not glibc and keep _GNU_SOURCE.
+FEATURE_TEST_MACRO = _GNU_SOURCE
+ifeq ($(PLATFORM_OS), LINUX)
+    ifeq ($(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW PLATFORM_ANDROID),)
+        FEATURE_TEST_MACRO = _DEFAULT_SOURCE
+    endif
+endif
+CFLAGS = -Wall -D$(FEATURE_TEST_MACRO) -D$(TARGET_PLATFORM) -D$(GRAPHICS) -Wno-missing-braces -Werror=pointer-arith -fno-strict-aliasing
 
 ifneq ($(RAYLIB_CONFIG_FLAGS), NONE)
     CFLAGS += -DEXTERNAL_CONFIG_FLAGS $(RAYLIB_CONFIG_FLAGS)
@@ -736,14 +733,14 @@ endif
 
 # Define source code object files required
 #------------------------------------------------------------------------------------------------
-OBJS = $(OBJ_DIR)/rcore.o \
-       $(OBJ_DIR)/rshapes.o \
-       $(OBJ_DIR)/rtextures.o \
-       $(OBJ_DIR)/rtext.o
+OBJS = rcore.o \
+       rshapes.o \
+       rtextures.o \
+       rtext.o
 
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
     ifeq ($(USE_EXTERNAL_GLFW),FALSE)
-        OBJS += $(OBJ_DIR)/rglfw.o
+        OBJS += rglfw.o
     endif
 endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_RGFW)
@@ -757,55 +754,52 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_RGFW)
 	        xdg-shell-client-protocol-code \
 	        xdg-toplevel-icon-v1-client-protocol-code
 
-	    PROTO_OBJS = $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(PROTOCOL_CODE_FILES)))
+	    PROTO_OBJS = $(addsuffix .o, $(PROTOCOL_CODE_FILES))
 	    OBJS += $(PROTO_OBJS)
 	endif
 endif
 ifeq ($(RAYLIB_MODULE_MODELS),TRUE)
-    OBJS += $(OBJ_DIR)/rmodels.o
+    OBJS += rmodels.o
 endif
 ifeq ($(RAYLIB_MODULE_AUDIO),TRUE)
-    OBJS += $(OBJ_DIR)/raudio.o
+    OBJS += raudio.o
 endif
 ifeq ($(RAYLIB_MODULE_RAYGUI),TRUE)
-    OBJS += $(OBJ_DIR)/raygui.o
+    OBJS += raygui.o
 endif
 
 ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-    OBJS += $(OBJ_DIR)/android_native_app_glue.o
+    OBJS += android_native_app_glue.o
 endif
 
 # Define processes to execute
 #------------------------------------------------------------------------------------------------
 # Default target entry
+# CUSTOM: instead of a single raylib build, build every SDL2 flavour into $(BINS_PATH)
 all: build-all
 
 OPT_FLAGS = -O3  -ffunction-sections -fdata-sections -fno-semantic-interposition -fno-plt
 BINS_PATH = ./bins
-OBJ_DIR = .
 
-
+# NOTE: raylib compiles its objects into the current directory (rcore.o, rshapes.o...) and make
+# only looks at timestamps, so *.o MUST be removed after every pass. Otherwise the next pass sees
+# them as up to date and re-archives the objects of the previous pass (wrong arch / wrong OpenGL).
 build-all:
 	@rm -rf $(BINS_PATH)/*
-	@rm -rf build
-	@mkdir -p $(BINS_PATH) build/linux32 build/linux64 build/win32 build/win64
+	@rm -f *.o
+	@mkdir -p $(BINS_PATH)
 
 	# Linux 64-bit - OpenGL 3.3
-	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=LINUX CC=gcc AR=ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=linux64 GRAPHICS=GRAPHICS_API_OPENGL_33 SDL_INCLUDE_PATH=/usr/include/SDL2 SDL_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu OBJ_DIR=build/linux64 CUSTOM_CFLAGS="$(OPT_FLAGS) -m64 -march=x86-64"; status=$$?; rm -rf build/linux64; exit $$status
+	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=LINUX CC=gcc AR=ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=linux64 GRAPHICS=GRAPHICS_API_OPENGL_33 SDL_INCLUDE_PATH=/usr/include/SDL2 SDL_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu CUSTOM_CFLAGS="$(OPT_FLAGS) -m64 -march=x86-64"; status=$$?; rm -f *.o; exit $$status
 
 	# Linux 32-bit - OpenGL 2.1
-	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=LINUX CC=gcc AR=ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=linux32 GRAPHICS=GRAPHICS_API_OPENGL_21 SDL_INCLUDE_PATH=/usr/include/SDL2 SDL_LIBRARY_PATH=/usr/lib/i386-linux-gnu OBJ_DIR=build/linux32 CUSTOM_CFLAGS="$(OPT_FLAGS) -m32 -march=i686"; status=$$?; rm -rf build/linux32; exit $$status
+	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=LINUX CC=gcc AR=ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=linux32 GRAPHICS=GRAPHICS_API_OPENGL_21 SDL_INCLUDE_PATH=/usr/include/SDL2 SDL_LIBRARY_PATH=/usr/lib/i386-linux-gnu CUSTOM_CFLAGS="$(OPT_FLAGS) -m32 -march=i686"; status=$$?; rm -f *.o; exit $$status
 
 	# Windows 64-bit - OpenGL 3.3
-	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=WINDOWS CC=x86_64-w64-mingw32-gcc AR=x86_64-w64-mingw32-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=win64 GRAPHICS=GRAPHICS_API_OPENGL_33 SDL_INCLUDE_PATH=./SDL2/x86_64-w64-mingw32/include/SDL2 SDL_LIBRARY_PATH=./SDL2/x86_64-w64-mingw32/lib OBJ_DIR=build/win64 CUSTOM_CFLAGS="$(OPT_FLAGS) -m64"; status=$$?; rm -rf build/win64; exit $$status
+	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=WINDOWS CC=x86_64-w64-mingw32-gcc AR=x86_64-w64-mingw32-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=win64 GRAPHICS=GRAPHICS_API_OPENGL_33 SDL_INCLUDE_PATH=./SDL2/x86_64-w64-mingw32/include/SDL2 SDL_LIBRARY_PATH=./SDL2/x86_64-w64-mingw32/lib CUSTOM_CFLAGS="$(OPT_FLAGS) -m64"; status=$$?; rm -f *.o; exit $$status
 
 	# Windows 32-bit - OpenGL 2.1
-	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=WINDOWS CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=win32 GRAPHICS=GRAPHICS_API_OPENGL_21 SDL_INCLUDE_PATH=./SDL2/i686-w64-mingw32/include/SDL2 SDL_LIBRARY_PATH=./SDL2/i686-w64-mingw32/lib OBJ_DIR=build/win32 CUSTOM_CFLAGS="$(OPT_FLAGS) -m32"; status=$$?; rm -rf build/win32; exit $$status
-
-	@rm -rf build
-	rm -f *.o
-
-
+	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=WINDOWS CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=win32 GRAPHICS=GRAPHICS_API_OPENGL_21 SDL_INCLUDE_PATH=./SDL2/i686-w64-mingw32/include/SDL2 SDL_LIBRARY_PATH=./SDL2/i686-w64-mingw32/lib CUSTOM_CFLAGS="$(OPT_FLAGS) -m32"; status=$$?; rm -f *.o; exit $$status
 
 # Compile raylib library
 # NOTE: Release directory is created if not exist
@@ -876,40 +870,40 @@ endif
 # Compile all modules with their prerequisites
 
 # Prerequisites of core module
-$(OBJ_DIR)/rcore.o : platforms/*.c
+rcore.o : platforms/*.c
 
 # Compile core module
-$(OBJ_DIR)/rcore.o : rcore.c raylib.h rlgl.h raymath.h rcamera.h rgestures.h
-	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS)
+rcore.o : rcore.c raylib.h rlgl.h raymath.h rcamera.h rgestures.h
+	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 
 # Compile rglfw module
-$(OBJ_DIR)/rglfw.o : rglfw.c
-	$(CC) $(GLFW_OSX) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS) -U_GNU_SOURCE
+rglfw.o : rglfw.c
+	$(CC) $(GLFW_OSX) -c $< $(CFLAGS) $(INCLUDE_PATHS) -U_GNU_SOURCE
 
 # Compile shapes module
-$(OBJ_DIR)/rshapes.o : rshapes.c raylib.h rlgl.h
-	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS)
+rshapes.o : rshapes.c raylib.h rlgl.h
+	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 
 # Compile textures module
-$(OBJ_DIR)/rtextures.o : rtextures.c raylib.h rlgl.h
-	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS)
+rtextures.o : rtextures.c raylib.h rlgl.h
+	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 
 # Compile text module
-$(OBJ_DIR)/rtext.o : rtext.c raylib.h
-	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS)
+rtext.o : rtext.c raylib.h
+	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 
 # Compile models module
-$(OBJ_DIR)/rmodels.o : rmodels.c raylib.h rlgl.h raymath.h
-	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS)
+rmodels.o : rmodels.c raylib.h rlgl.h raymath.h
+	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 
 # Compile audio module
-$(OBJ_DIR)/raudio.o : raudio.c raylib.h
-	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS)
+raudio.o : raudio.c raylib.h
+	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 
 # Compile raygui module
 # NOTE: raygui header should be distributed with raylib.h
-$(OBJ_DIR)/raygui.o : raygui.c
-	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS)
+raygui.o : raygui.c
+	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 raygui.c:
 ifeq ($(PLATFORM_SHELL), cmd)
 	@echo #define RAYGUI_IMPLEMENTATION > raygui.c
@@ -920,14 +914,14 @@ else
 endif
 
 # Compile android_native_app_glue module
-$(OBJ_DIR)/android_native_app_glue.o : $(NATIVE_APP_GLUE)/android_native_app_glue.c
-	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS)
+android_native_app_glue.o : $(NATIVE_APP_GLUE)/android_native_app_glue.c
+	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 
 # Compile Wayland files
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_RGFW)
 	ifeq ($(RGFW_LINUX_ENABLE_WAYLAND),TRUE)
 		%-client-protocol-code.o: %-client-protocol-code.c
-			$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE_PATHS)
+			$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 
 		%-client-protocol-code.h: external/RGFW/deps/wayland/%.xml
 			wayland-scanner private-code $< $@
@@ -1024,8 +1018,6 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
 	rm -fv $(NATIVE_APP_GLUE)/android_native_app_glue.o
 endif
 
-# Set specific target variable
-clean_shell_cmd: SHELL=cmd
 clean_shell_cmd:
 	del *.o /s
 	cd $(RAYLIB_RELEASE_PATH) & \
