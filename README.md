@@ -37,7 +37,12 @@ testing a GT730 soon
 # Building
 adding doc for building later 
 # Credits
-adding credits for maps and skins later
+Maps : 
+  - Crime Wave : https://osu.ppy.sh/beatmapsets/105296
+  - Kagu (Taketori Hishou) : https://osu.ppy.sh/beatmapsets/21098
+  - Quaver : https://osu.ppy.sh/beatmapsets/873811
+  - Sakuya (Nights of knights) : https://osu.ppy.sh/beatmapsets/352570
+  - Sanae (one more encore) : https://osu.ppy.sh/beatmapsets/27915
 
 # Licence
 [This Project is Licenced under GPL3](https://github.com/RafiOnKomputer/C-OSU/blob/main/LICENSE)
