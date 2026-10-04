@@ -44,6 +44,9 @@ Maps :
   - Sakuya (Nights of knights) : https://osu.ppy.sh/beatmapsets/352570
   - Sanae (one more encore) : https://osu.ppy.sh/beatmapsets/27915
 
+Skins : 
+  - Mari (Default C-OSU Skin) : https://skins.osuck.net/skins/3036
+
 # Licence
 [This Project is Licenced under GPL3](https://github.com/RafiOnKomputer/C-OSU/blob/main/LICENSE)
 
