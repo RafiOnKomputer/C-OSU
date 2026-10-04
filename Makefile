@@ -58,7 +58,7 @@ LINUX64_LIBS = ./Raylib/bins/liblinux64.a \
                -lSDL2
 
 LINUX64_STATIC_LIBS = ./Raylib/bins/liblinux64.a \
-               /usr/lib/x86_64-linux-gnu/libSDL2.a \
+		-lSDL2 \
                -lm -ldl -lpthread \
                -lX11 -lxcb -lGL -lGLX -lXext \
                -lGLdispatch -lXau -lXdmcp \
@@ -76,7 +76,7 @@ LINUX32_LIBS = ./Raylib/bins/liblinux32.a \
                -lSDL2
 
 LINUX32_STATIC_LIBS = ./Raylib/bins/liblinux32.a \
-               /usr/lib/i386-linux-gnu/libSDL2.a \
+               -lSDL2  \
                -lm -ldl -lpthread \
                -lX11 -lxcb -lGL -lGLX -lXext \
                -lGLdispatch -lXau -lXdmcp \
@@ -152,34 +152,34 @@ build-linux64: $(REL64_OBJ)
 	@rm -f $(OUT)/C-OSU.linux64
 	$(CC) $(CFLAGS) -m64 $(LDFLAGS) \
 	-o $(OUT)/C-OSU.linux64 $(REL64_OBJ) $(LINUX64_LIBS)
-
+	@rm -rf build
 build-linux64-static: $(REL64_OBJ)
 	@rm -f $(OUT)/C-OSU.linux64
 	$(CC) $(CFLAGS) -m64 $(LDFLAGS) \
 	-o $(OUT)/C-OSU.linux64 $(REL64_OBJ) $(LINUX64_STATIC_LIBS)
-
+	@rm -rf build
 build-linux32: $(REL32_OBJ)
 	@rm -f $(OUT)/C-OSU.linux32
 	$(CC) $(CFLAGS) $(X86_32_FLAGS) $(LDFLAGS) $(X86_32_LDFLAGS) \
 	-o $(OUT)/C-OSU.linux32 $(REL32_OBJ) $(LINUX32_LIBS)
-
+	@rm -rf build
 build-linux32-static: $(REL32_OBJ)
 	@rm -f $(OUT)/C-OSU.linux32
 	$(CC) $(CFLAGS) $(X86_32_FLAGS) $(LDFLAGS) $(X86_32_LDFLAGS) \
 	-o $(OUT)/C-OSU.linux32 $(REL32_OBJ) $(LINUX32_STATIC_LIBS)
-
+	@rm -rf build
 build-win64: $(RELW64_OBJ)
 	@rm -f $(OUT)/C-OSU.win64.exe
 	$(WIN64CC) $(WIN64_FLAGS) \
 	$(LDFLAGS) -Wl,--allow-multiple-definition \
 	-o $(OUT)/C-OSU.win64.exe $(RELW64_OBJ) $(WIN64_LIBS)
-
+	@rm -rf build
 build-win32: $(RELW32_OBJ)
 	@rm -f $(OUT)/C-OSU.win32.exe
 	$(WIN32CC) $(WIN32_FLAGS) \
 	$(LDFLAGS) -Wl,--allow-multiple-definition \
 	-o $(OUT)/C-OSU.win32.exe $(RELW32_OBJ) $(WIN32_LIBS)
-
+	@rm -rf build
 
 clean:
 	rm -f $(OUT)/C-OSU.dev.linux64
@@ -211,6 +211,7 @@ debug: $(DEBUG_BIN)
 	ASAN_OPTIONS=abort_on_error=1:detect_leaks=1 \
 	UBSAN_OPTIONS=print_stacktrace=1 \
 	./C-OSU.debug.linux64
+	 @rm -rf build
 
 
 .PHONY: all linux64 debug clean FORCE \
