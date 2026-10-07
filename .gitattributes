@@ -1,2 +1,3 @@
 Makefile linguist-vendored
 Raylib/Makefile linguist-vendored
+Raylib/update.sh
