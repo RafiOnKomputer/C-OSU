@@ -454,6 +454,7 @@ void Init_Beatmap(void) {
   SkinScaleMode = config.hires ? 256.0f : 128.0f;
 }
 
+
 void Unload_Beatmap(void) {
   UnloadMusicStream(BG_Music);
   UnloadTexture(BG_Image_RAW);
