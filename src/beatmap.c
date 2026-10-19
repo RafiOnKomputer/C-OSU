@@ -279,6 +279,8 @@ void Init_Beatmap(void) {
     }
   }
 
+  // get res again just in case
+
   ScreenWidth = (float)GetScreenWidth();
   ScreenHeight = (float)GetScreenHeight();
 
