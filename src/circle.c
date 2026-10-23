@@ -306,8 +306,8 @@ int Render_HitObjects(HitCircle *circle) {
   return 0;
 }
 
-int Hit_HitCircle(HitCircle *circle, HitCircle *prev, bool FirstCircle,
-                  Vector2 cursor, bool HitInput) {
+int Hit_Checker(HitCircle *circle, HitCircle *prev, bool FirstCircle,
+                Vector2 cursor, bool HitInput) {
 
   // this func Handles Input
 
