@@ -32,7 +32,7 @@ typedef struct {
 void Init_HitCircle(void);
 void Unload_HitCircle(void);
 
-int Draw_HitCircle(HitCircle *circle);
+int Render_HitObjects(HitCircle *circle);
 int Hit_HitCircle(HitCircle *circle, HitCircle *prev, bool FirstCircle,
                   Vector2 cursor, bool HitInput);
 int Draw_Guide(HitCircle *circle, HitCircle *next);

@@ -196,7 +196,7 @@ void Draw_Circles(void) {
   // The acual circles
 
   for (int i = EndCircle; i >= LastAnimate; i--) {
-    Draw_HitCircle(&circles[i]);
+    Render_HitObjects(&circles[i]);
   }
 
   // Wait timer/Skiper i think it can be improved later

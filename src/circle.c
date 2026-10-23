@@ -59,7 +59,9 @@ static double FadeInClock(HitCircle *circle) {
   return (CurrentTime - circle->CircleAP) * 1000.0f;
 }
 
-int Draw_HitCircle(HitCircle *circle) {
+void Draw_Circle(void) {}
+
+int Render_HitObjects(HitCircle *circle) {
 
   // main func that draws all circles
 
