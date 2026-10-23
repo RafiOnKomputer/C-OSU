@@ -165,8 +165,8 @@ void Draw_Circles(void) {
 
     int ReturnValue;
 
-    ReturnValue = Hit_HitCircle(&circles[i], &circles[i - 1], FirstCircle,
-                                Cursor, HitInput);
+    ReturnValue = Hit_Checker(&circles[i], &circles[i - 1], FirstCircle, Cursor,
+                              HitInput);
 
     if (ReturnValue == 1) {
       break;

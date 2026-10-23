@@ -29,12 +29,9 @@ typedef struct {
 
 } HitCircle;
 
-void Init_HitCircle(void);
-void Unload_HitCircle(void);
-
 int Render_HitObjects(HitCircle *circle);
-int Hit_HitCircle(HitCircle *circle, HitCircle *prev, bool FirstCircle,
-                  Vector2 cursor, bool HitInput);
+int Hit_Checker(HitCircle *circle, HitCircle *prev, bool FirstCircle,
+                Vector2 cursor, bool HitInput);
 int Draw_Guide(HitCircle *circle, HitCircle *next);
 void RestWindow(HitCircle *circle);
 
