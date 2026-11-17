@@ -1,220 +1,89 @@
-.DEFAULT_GOAL := linux64
+.PHONY: build linux64 linux32 win64 win32 release run clean
 
-CC      = gcc
-WIN64CC = x86_64-w64-mingw32-gcc
-WIN32CC = i686-w64-mingw32-gcc
-
-OUT  = ./C-OSU
-SRC  = game.c $(wildcard src/*.c)
-INC  = -I./inc -I./Raylib/
+CC  = gcc
+CC_Win64 = x86_64-w64-mingw32-gcc
+CC_Win32 = i686-w64-mingw32-gcc
 WARN = -Wall -Wextra -Wpedantic
+# WINDOWS XP AND DEBIAN 8 SUPPORT SOON !!!
+WINDOWS_VER = -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
+CFLAGS = -O2 -flto=auto -ffunction-sections -fdata-sections -fno-math-errno -fno-trapping-math -Wl,--gc-sections -s
+LIBS = -lSDL2 -lm
+LIBS_WIN = -lm -lsetupapi -lole32 -loleaut32 -limm32 -lgdi32 -lversion -lwinmm
+FILE = game.c $(wildcard src/*.c)
+OUTPUT_PATH = ./C-OSU/
+
+INC = -I./inc
+SDL2_WIN_INC = -I./external/SDL2/x86_64-w64-mingw32/include
+SDL2_WIN32_INC = -I./external/SDL2/i686-w64-mingw32/include
+
+RAYLIB = -I./external/raylib/src/
+RAYLIB_BIN = ./external/raylib/src/bins/liblinux64.a
+RAYLIB_BIN32 = ./external/raylib/src/bins/liblinux32.a
+RAYLIB_BIN_WIN = ./external/raylib/src/bins/libwin64.a
+RAYLIB_BIN_WIN32 = ./external/raylib/src/bins/libwin32.a
 
 
-NPROC := $(shell nproc 2>/dev/null || echo 4)
-ifeq ($(MAKELEVEL),0)
-MAKEFLAGS += -j$(NPROC)
+SDL2_WIN = ./external/SDL2/x86_64-w64-mingw32/lib/libSDL2.a
+SDL2_WIN32 = ./external/SDL2/i686-w64-mingw32/lib/libSDL2.a
+
+OS   = $(shell uname -s)
+ARCH = $(shell uname -m)
+
+GREEN = $(shell printf '\033[38;2;0;255;0m')
+AMBER = $(shell printf '\033[38;2;249;126;2m')
+RED   = $(shell printf '\033[38;2;255;0;0m')
+RESET = $(shell printf '\033[0m')
+
+ifeq ($(OS),Linux)
+  ifeq ($(ARCH),x86_64)
+    AUTO = linux64
+  else ifeq ($(ARCH),i686)
+    AUTO = linux32
+  else
+    $(error $(RED)Unsupported CPU Architecture: $(ARCH)$(RESET))
+  endif
+else ifneq (,$(findstring _NT,$(OS)))
+  ifeq ($(ARCH),x86_64)
+    AUTO = win64
+    CC_Win64 = gcc
+  else ifeq ($(ARCH),i686)
+    AUTO = win32
+    CC_Win32 = gcc
+  else
+    $(error $(RED)Unsupported CPU Architecture: $(ARCH)$(RESET))
+  endif
+else
+  $(error $(RED)Unsupported OS: $(OS)$(RESET))
 endif
 
-GAMEMODE := $(shell command -v gamemoderun 2>/dev/null)
+linux64:
+	@echo  "$(GREEN)OS : GNU/Linux x86_64$(RESET)"
+	@echo  "$(AMBER)Executable Binary : C-OSU.Linux64$(RESET)"
+	$(CC) -m64 $(WARN) $(CFLAGS) -march=x86-64 -mtune=generic -fno-semantic-interposition -fno-plt $(INC) $(RAYLIB) $(FILE) $(RAYLIB_BIN) $(LIBS) -o $(OUTPUT_PATH)C-OSU.Linux64
 
-CFLAGS = -std=c17 -O3 -flto=$(NPROC) \
-         -ffunction-sections -fdata-sections \
-         -fno-semantic-interposition -fno-plt \
-         -fno-math-errno -fno-trapping-math \
-         $(WARN) $(INC)
+linux32:
+	@echo  "$(GREEN)OS : GNU/Linux x86$(RESET)"
+	@echo  "$(AMBER)Executable Binary : C-OSU.Linux32$(RESET)"
+	$(CC) -m32 $(WARN) $(CFLAGS) -march=i686 -mtune=i686 -fno-semantic-interposition -fno-plt $(INC) $(RAYLIB) $(FILE) $(RAYLIB_BIN32) $(LIBS) -o $(OUTPUT_PATH)C-OSU.Linux32
 
-LDFLAGS = -flto=$(NPROC) -Wl,--gc-sections -s
+win64:
+	@echo  "$(GREEN)OS : Microslop Windows x86_64$(RESET)"
+	@echo  "$(AMBER)Executable Binary : C-OSU.Win64.exe$(RESET)"
+	$(CC_Win64) -m64 -Wl,--allow-multiple-definition $(WARN) $(CFLAGS) -march=x86-64 -mtune=generic -static-libgcc  $(WINDOWS_VER) $(INC) $(SDL2_WIN_INC) $(RAYLIB) $(FILE) $(SDL2_WIN) $(RAYLIB_BIN_WIN)  $(LIBS_WIN) -o $(OUTPUT_PATH)C-OSU.Win64.exe
 
-X86_32_FLAGS = -m32 -fno-pie
-X86_32_LDFLAGS = -no-pie
+win32:
+	@echo  "$(GREEN)OS : Microslop Windows x86$(RESET)"
+	@echo  "$(AMBER)Executable Binary : C-OSU.Win32.exe$(RESET)"
+	$(CC_Win32) -m32 -Wl,--allow-multiple-definition $(WARN) $(CFLAGS) -march=i686 -mtune=i686 -static-libgcc $(WINDOWS_VER) $(INC) $(SDL2_WIN32_INC) $(RAYLIB) $(FILE) $(SDL2_WIN32) $(RAYLIB_BIN_WIN32)  $(LIBS_WIN) -o $(OUTPUT_PATH)C-OSU.Win32.exe
 
-DEV_OPT    ?= -O0
-DEV_CFLAGS  = -std=c17 $(DEV_OPT) -g0 -pipe $(WARN) $(INC) -m64 -MMD -MP
-DEV_OBJ     = $(patsubst %.c,build/dev/%.o,$(SRC))
-DEV_BIN     = $(OUT)/C-OSU.dev.linux64
-
-DEBUG_CFLAGS = -std=c17 -O1 -g3 \
-               -fsanitize=address,undefined \
-               -fno-omit-frame-pointer \
-               $(WARN) $(INC) -m64 -MMD -MP
-
-DEBUG_LDFLAGS = -fsanitize=address,undefined
-DEBUG_OBJ     = $(patsubst %.c,build/debug/%.o,$(SRC))
-DEBUG_BIN     = $(OUT)/C-OSU.debug.linux64
-
-REL_DIR    = build/rel
-REL64_OBJ  = $(patsubst %.c,$(REL_DIR)/linux64/%.o,$(SRC))
-REL32_OBJ  = $(patsubst %.c,$(REL_DIR)/linux32/%.o,$(SRC))
-RELW64_OBJ = $(patsubst %.c,$(REL_DIR)/win64/%.o,$(SRC))
-RELW32_OBJ = $(patsubst %.c,$(REL_DIR)/win32/%.o,$(SRC))
-
-
-# Linux 64
-LINUX64_LIBS = ./Raylib/bins/liblinux64.a \
-               -L/usr/lib/x86_64-linux-gnu \
-               -lm -ldl -lpthread \
-               -lX11 -lxcb -lGL -lGLX -lXext \
-               -lGLdispatch -lXau -lXdmcp \
-               -lSDL2
-
-LINUX64_STATIC_LIBS = ./Raylib/bins/liblinux64.a \
-		-lSDL2 \
-               -lm -ldl -lpthread \
-               -lX11 -lxcb -lGL -lGLX -lXext \
-               -lGLdispatch -lXau -lXdmcp \
-               -lasound -lpulse -lpulse-simple -lsamplerate \
-               -lXcursor -lXi -lXfixes -lXrandr -lXss \
-               -ldrm -lgbm -lwayland-egl -lwayland-client -lwayland-cursor \
-               -lxkbcommon -ldecor-0
-
-# Linux 32
-LINUX32_LIBS = ./Raylib/bins/liblinux32.a \
-               -L/usr/lib/i386-linux-gnu \
-               -lm -ldl -lpthread \
-               -lX11 -lxcb -lGL -lGLX -lXext \
-               -lGLdispatch -lXau -lXdmcp \
-               -lSDL2
-
-LINUX32_STATIC_LIBS = ./Raylib/bins/liblinux32.a \
-               -lSDL2  \
-               -lm -ldl -lpthread \
-               -lX11 -lxcb -lGL -lGLX -lXext \
-               -lGLdispatch -lXau -lXdmcp \
-               -lasound -lpulse -lpulse-simple -lsamplerate \
-               -lXcursor -lXi -lXfixes -lXrandr -lXss \
-               -ldrm -lgbm -lwayland-egl -lwayland-client -lwayland-cursor \
-               -lxkbcommon -ldecor-0
-
-# Windows 64
-WIN64_FLAGS = $(CFLAGS) -m64 \
-              -I./Raylib/SDL2/x86_64-w64-mingw32/include
-
-WIN64_LIBS = ./Raylib/bins/libwin64.a \
-             ./Raylib/SDL2/x86_64-w64-mingw32/lib/libSDL2main.a \
-             ./Raylib/SDL2/x86_64-w64-mingw32/lib/libSDL2.a \
-             -lopengl32 -lgdi32 -lwinmm -lpsapi \
-             -luser32 -lshell32 -ladvapi32 \
-             -lole32 -loleaut32 -limm32 \
-             -lversion -lsetupapi
-
-# Windows 32
-WIN32_FLAGS = $(CFLAGS) -m32 \
-              -I./Raylib/SDL2/i686-w64-mingw32/include
-
-WIN32_LIBS = ./Raylib/bins/libwin32.a \
-             ./Raylib/SDL2/i686-w64-mingw32/lib/libSDL2main.a \
-             ./Raylib/SDL2/i686-w64-mingw32/lib/libSDL2.a \
-             -lopengl32 -lgdi32 -lwinmm -lpsapi \
-             -luser32 -lshell32 -ladvapi32 \
-             -lole32 -loleaut32 -limm32 \
-             -lversion -lsetupapi
-
-
-build/dev/%.o: %.c
-	@mkdir -p $(@D)
-	$(CC) $(DEV_CFLAGS) -c $< -o $@
-
-$(DEV_BIN): $(DEV_OBJ) ./Raylib/bins/liblinux64.a
-	$(CC) -m64 -o $@ $(DEV_OBJ) $(LINUX64_LIBS)
-
-build/debug/%.o: %.c
-	@mkdir -p $(@D)
-	$(CC) $(DEBUG_CFLAGS) -c $< -o $@
-
-$(DEBUG_BIN): $(DEBUG_OBJ) ./Raylib/bins/liblinux64.a
-	$(CC) -m64 $(DEBUG_LDFLAGS) -o $@ $(DEBUG_OBJ) $(LINUX64_LIBS)
-
--include $(DEV_OBJ:.o=.d) $(DEBUG_OBJ:.o=.d)
-
-build-dev-linux64: $(DEV_BIN)
-build-debug-linux64: $(DEBUG_BIN)
-
-
-FORCE:
-
-$(REL_DIR)/linux64/%.o: %.c FORCE
-	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -m64 -c $< -o $@
-
-$(REL_DIR)/linux32/%.o: %.c FORCE
-	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(X86_32_FLAGS) -c $< -o $@
-
-$(REL_DIR)/win64/%.o: %.c FORCE
-	@mkdir -p $(@D)
-	$(WIN64CC) $(WIN64_FLAGS) -c $< -o $@
-
-$(REL_DIR)/win32/%.o: %.c FORCE
-	@mkdir -p $(@D)
-	$(WIN32CC) $(WIN32_FLAGS) -c $< -o $@
-
-build-linux64: $(REL64_OBJ)
-	@rm -f $(OUT)/C-OSU.linux64
-	$(CC) $(CFLAGS) -m64 $(LDFLAGS) \
-	-o $(OUT)/C-OSU.linux64 $(REL64_OBJ) $(LINUX64_LIBS)
-	@rm -rf build
-build-linux64-static: $(REL64_OBJ)
-	@rm -f $(OUT)/C-OSU.linux64
-	$(CC) $(CFLAGS) -m64 $(LDFLAGS) \
-	-o $(OUT)/C-OSU.linux64 $(REL64_OBJ) $(LINUX64_STATIC_LIBS)
-	@rm -rf build
-build-linux32: $(REL32_OBJ)
-	@rm -f $(OUT)/C-OSU.linux32
-	$(CC) $(CFLAGS) $(X86_32_FLAGS) $(LDFLAGS) $(X86_32_LDFLAGS) \
-	-o $(OUT)/C-OSU.linux32 $(REL32_OBJ) $(LINUX32_LIBS)
-	@rm -rf build
-build-linux32-static: $(REL32_OBJ)
-	@rm -f $(OUT)/C-OSU.linux32
-	$(CC) $(CFLAGS) $(X86_32_FLAGS) $(LDFLAGS) $(X86_32_LDFLAGS) \
-	-o $(OUT)/C-OSU.linux32 $(REL32_OBJ) $(LINUX32_STATIC_LIBS)
-	@rm -rf build
-build-win64: $(RELW64_OBJ)
-	@rm -f $(OUT)/C-OSU.win64.exe
-	$(WIN64CC) $(WIN64_FLAGS) \
-	$(LDFLAGS) -Wl,--allow-multiple-definition \
-	-o $(OUT)/C-OSU.win64.exe $(RELW64_OBJ) $(WIN64_LIBS)
-	@rm -rf build
-build-win32: $(RELW32_OBJ)
-	@rm -f $(OUT)/C-OSU.win32.exe
-	$(WIN32CC) $(WIN32_FLAGS) \
-	$(LDFLAGS) -Wl,--allow-multiple-definition \
-	-o $(OUT)/C-OSU.win32.exe $(RELW32_OBJ) $(WIN32_LIBS)
-	@rm -rf build
+run:
+	cd $(OUTPUT_PATH) && gamemoderun ./C-OSU.Linux64
 
 clean:
-	rm -f $(OUT)/C-OSU.dev.linux64
-	rm -f $(OUT)/C-OSU.linux64
-	rm -f $(OUT)/C-OSU.linux32
-	rm -f $(OUT)/C-OSU.debug.linux64
-	rm -f $(OUT)/C-OSU.win64.exe
-	rm -f $(OUT)/C-OSU.win32.exe
-	rm -rf build
+	rm -f $(OUTPUT_PATH)C-OSU.*
+
+build: $(AUTO)
 
 
-# make
-linux64: $(DEV_BIN)
+release: linux64 linux32 win64 win32
 
-	cd $(OUT) && $(GAMEMODE) ./C-OSU.dev.linux64
-
-# make all
-all:
-	@$(MAKE) --no-print-directory build-linux64-static
-	@$(MAKE) --no-print-directory build-linux32-static
-	@$(MAKE) --no-print-directory build-win64
-	@$(MAKE) --no-print-directory build-win32
-
-
-# make debug
-debug: $(DEBUG_BIN)
-
-	cd $(OUT) && \
-	ASAN_OPTIONS=abort_on_error=1:detect_leaks=1 \
-	UBSAN_OPTIONS=print_stacktrace=1 \
-	./C-OSU.debug.linux64
-	 @rm -rf build
-
-
-.PHONY: all linux64 debug clean FORCE \
-        build-linux64 build-dev-linux64 build-debug-linux64 build-linux32 \
-        build-linux64-static build-linux32-static \
-        build-win64 build-win32

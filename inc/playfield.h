@@ -1,6 +1,8 @@
 #ifndef PLAYFIELD_H
 #define PLAYFIELD_H
 
+#include <stdbool.h>
+
 void Draw_Playfield(void);
 void Draw_Circles(void);
 void Draw_UI(void);

@@ -1,2 +1,2 @@
 -Iinc
--IRaylib
+-I./external/raylib/src

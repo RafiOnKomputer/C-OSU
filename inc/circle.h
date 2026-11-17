@@ -12,20 +12,20 @@ typedef struct {
   int soundbank;
   int color;
   int combo_number;
-  double endtime;
   int normalset;
   int additionBank;
   int ApproachingTime;
   int Score;
   float xcord;
   float ycord;
+  float HitSoundVol;
+  double CircleAP;
+  double endtime;
   bool active;
   bool exiting;
   bool missed;
   bool ClockRunning;
-  double CircleAP;
   Color ComboColor;
-  float HitSoundVol;
 
 } HitCircle;
 
