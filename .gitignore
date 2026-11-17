@@ -1,6 +1,10 @@
 C-OSU/Songs/
 C-OSU/Skins/
-external
+
+external/*
+!external/raylib/
+external/raylib/*
+!external/raylib/src/
+external/raylib/src/*
 !external/raylib/src/config.h
 !external/raylib/src/Makefile
-!update.sh
