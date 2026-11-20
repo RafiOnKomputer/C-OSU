@@ -775,32 +775,30 @@ endif
 # Define processes to execute
 #------------------------------------------------------------------------------------------------
 # Default target entry
-# CUSTOM: instead of a single raylib build, build every SDL2 flavour into $(BINS_PATH)
 all: build-all
 
-OPT_FLAGS = -O3  -ffunction-sections -fdata-sections -fno-semantic-interposition -fno-plt
+OPT_FLAGS = -O2 -flto=auto -ffunction-sections -fdata-sections -fno-math-errno -fno-trapping-math
+ELF_FLAGS = -fno-semantic-interposition -fno-plt
+WINDOWS_VER = -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
 BINS_PATH = ./bins
 
-# NOTE: raylib compiles its objects into the current directory (rcore.o, rshapes.o...) and make
-# only looks at timestamps, so *.o MUST be removed after every pass. Otherwise the next pass sees
-# them as up to date and re-archives the objects of the previous pass (wrong arch / wrong OpenGL).
+
 build-all:
 	@rm -rf $(BINS_PATH)/*
 	@rm -f *.o
 	@mkdir -p $(BINS_PATH)
 
 	# Linux 64-bit - OpenGL 3.3
-	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=LINUX CC=gcc AR=ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=linux64 GRAPHICS=GRAPHICS_API_OPENGL_33 SDL_INCLUDE_PATH=/usr/include/SDL2 SDL_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu CUSTOM_CFLAGS="$(OPT_FLAGS) -m64 -march=x86-64"; status=$$?; rm -f *.o; exit $$status
+	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=LINUX CC=gcc AR=gcc-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=linux64 GRAPHICS=GRAPHICS_API_OPENGL_33 SDL_INCLUDE_PATH=/usr/include/SDL2 SDL_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu CUSTOM_CFLAGS="$(OPT_FLAGS) $(ELF_FLAGS) -m64 -march=x86-64 -mtune=generic"; status=$$?; rm -f *.o; exit $$status
 
 	# Linux 32-bit - OpenGL 2.1
-	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=LINUX CC=gcc AR=ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=linux32 GRAPHICS=GRAPHICS_API_OPENGL_21 SDL_INCLUDE_PATH=/usr/include/SDL2 SDL_LIBRARY_PATH=/usr/lib/i386-linux-gnu CUSTOM_CFLAGS="$(OPT_FLAGS) -m32 -march=i686"; status=$$?; rm -f *.o; exit $$status
+	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=LINUX CC=gcc AR=gcc-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=linux32 GRAPHICS=GRAPHICS_API_OPENGL_21 SDL_INCLUDE_PATH=/usr/include/SDL2 SDL_LIBRARY_PATH=/usr/lib/i386-linux-gnu CUSTOM_CFLAGS="$(OPT_FLAGS) $(ELF_FLAGS) -m32 -march=i686 -mtune=i686"; status=$$?; rm -f *.o; exit $$status
 
 	# Windows 64-bit - OpenGL 3.3
-	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=WINDOWS CC=x86_64-w64-mingw32-gcc AR=x86_64-w64-mingw32-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=win64 GRAPHICS=GRAPHICS_API_OPENGL_33 SDL_INCLUDE_PATH=./SDL2/x86_64-w64-mingw32/include/SDL2 SDL_LIBRARY_PATH=./SDL2/x86_64-w64-mingw32/lib CUSTOM_CFLAGS="$(OPT_FLAGS) -m64"; status=$$?; rm -f *.o; exit $$status
+	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=WINDOWS CC=x86_64-w64-mingw32-gcc AR=x86_64-w64-mingw32-gcc-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=win64 GRAPHICS=GRAPHICS_API_OPENGL_33 SDL_INCLUDE_PATH=../../SDL2/x86_64-w64-mingw32/include/SDL2 SDL_LIBRARY_PATH=../../SDL2/x86_64-w64-mingw32/lib CUSTOM_CFLAGS="$(OPT_FLAGS) $(WINDOWS_VER) -m64 -march=x86-64 -mtune=generic"; status=$$?; rm -f *.o; exit $$status
 
 	# Windows 32-bit - OpenGL 2.1
-	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=WINDOWS CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=win32 GRAPHICS=GRAPHICS_API_OPENGL_21 SDL_INCLUDE_PATH=./SDL2/i686-w64-mingw32/include/SDL2 SDL_LIBRARY_PATH=./SDL2/i686-w64-mingw32/lib CUSTOM_CFLAGS="$(OPT_FLAGS) -m32"; status=$$?; rm -f *.o; exit $$status
-
+	@$(MAKE) --no-print-directory raylib PLATFORM=PLATFORM_DESKTOP_SDL PLATFORM_OS=WINDOWS CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-gcc-ar RAYLIB_LIBTYPE=STATIC RAYLIB_RELEASE_PATH=$(BINS_PATH) RAYLIB_LIB_NAME=win32 GRAPHICS=GRAPHICS_API_OPENGL_21 SDL_INCLUDE_PATH=../../SDL2/i686-w64-mingw32/include/SDL2 SDL_LIBRARY_PATH=../../SDL2/i686-w64-mingw32/lib CUSTOM_CFLAGS="$(OPT_FLAGS) $(WINDOWS_VER) -m32 -march=i686 -mtune=i686"; status=$$?; rm -f *.o; exit $$status
 # Compile raylib library
 # NOTE: Release directory is created if not exist
 raylib: $(OBJS)

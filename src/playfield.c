@@ -150,12 +150,12 @@ void Draw_Circles(void) {
 
   // checks input every frame
 
+  Vector2 Cursor = Get_Cursor_Position();
+
   bool HitInput = IsMouseButtonPressed(MOUSE_BUTTON_LEFT) ||
                   IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) ||
                   IsKeyPressed(KEY_X) || IsKeyPressed(KEY_Z) ||
                   IsKeyPressed(KEY_SPACE);
-
-  Vector2 Cursor = Get_Cursor_Position();
 
   // Circle Clicker
 

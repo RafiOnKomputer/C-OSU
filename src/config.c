@@ -34,6 +34,10 @@ void LoadConfig(void) {
   if (!f)
     return;
 
+  // TODO USE RIGHT DATATYPE MOST OF TS CAN BE JUST BOOL AND SMALL INTS!
+  // ALSO ADD A FALLBACK VALUE!
+
+  fscanf(f, "NATIVE_RES=%d\n", &config.native_res);
   fscanf(f, "WIDTH=%d\n", &config.width);
   fscanf(f, "HEIGHT=%d\n", &config.height);
   fscanf(f, "FULLSCREEN=%d\n", &config.fullscreen);

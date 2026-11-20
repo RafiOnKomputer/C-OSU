@@ -25,7 +25,7 @@
  *    - Sets Vsync and fullscreen
  *    - Sets FPS limit
  *    - Gets Screen Res
- */                                                                            \
+ */
 #include "beatmap.h"
 #include "config.h"
 #include "cursor.h"
@@ -58,35 +58,34 @@ void Init_COSU(void) {
   if (config.fullscreen)
     flags |= FLAG_FULLSCREEN_MODE;
 
+  if (config.native_res) {
+
+    InitWindow(0, 0, "C-OSU");
+    int CurrentMonitor = GetCurrentMonitor();
+    config.width = GetMonitorWidth(CurrentMonitor);
+    config.height = GetMonitorHeight(CurrentMonitor);
+    printf("\nAUTO RES %dx%d\n", config.width, config.height);
+    CloseWindow();
+  }
+
   SetConfigFlags(flags);
 
   InitWindow(config.width, config.height, "C-OSU");
-
-  if (!IsWindowReady())
-    return;
-
   InitAudioDevice();
-
-  if (!IsAudioDeviceReady()) {
-    CloseWindow();
-    return;
-  }
 
   SetTargetFPS(config.fpsLimit);
 
-  ScreenWidth = (float)GetScreenWidth();
-  ScreenHeight = (float)GetScreenHeight();
+  ScreenWidth = GetScreenWidth();
+  ScreenHeight = GetScreenHeight();
 
   init_skin();
   Init_Cursor();
 
   if (rlGetVersion() == RL_OPENGL_21) {
-
     printf("\nRaylib Backend: OpenGL 2.1\n");
   }
 
   else if (rlGetVersion() == RL_OPENGL_33) {
-
     printf("\nRaylib Backend: OpenGL 3.3\n");
   }
 }

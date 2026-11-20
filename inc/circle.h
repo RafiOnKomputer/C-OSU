@@ -14,7 +14,7 @@ typedef struct {
   int combo_number;
   int normalset;
   int additionBank;
-  int ApproachingTime;
+  double ApproachingTime;
   int Score;
   float xcord;
   float ycord;

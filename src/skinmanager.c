@@ -33,6 +33,7 @@ Texture2D CursorTexture;
 Sound MissSound;
 Texture2D HitCircleTexture;
 Texture2D OverlayCircle;
+Texture2D ApproachCircle;
 Texture2D Miss;
 Texture2D judge100;
 Texture2D judge50;
@@ -58,6 +59,21 @@ Sound drum_hitnormal;
 Sound drum_hitwhistle;
 Sound drum_hitfinish;
 Sound drum_hitclap;
+
+bool normal_hitnormal_valid = true;
+bool normal_hitwhistle_valid = true;
+bool normal_hitfinish_valid = true;
+bool normal_hitclap_valid = true;
+
+bool soft_hitnormal_valid = true;
+bool soft_hitwhistle_valid = true;
+bool soft_hitfinish_valid = true;
+bool soft_hitclap_valid = true;
+
+bool drum_hitnormal_valid = true;
+bool drum_hitwhistle_valid = true;
+bool drum_hitfinish_valid = true;
+bool drum_hitclap_valid = true;
 
 static const char *SkinPath(const char *file) {
   return TextFormat("Skins/%s/%s", config.skin, file);
@@ -88,41 +104,66 @@ void init_skin(void) {
   drum_hitfinish = LoadSound(SkinPath("drum-hitfinish.wav"));
   drum_hitclap = LoadSound(SkinPath("drum-hitclap.wav"));
 
-  if (!IsSoundValid(normal_hitnormal))
+  if (!IsSoundValid(normal_hitnormal)) {
     UnloadSound(normal_hitnormal);
+    normal_hitnormal_valid = false;
+  }
 
-  if (!IsSoundValid(normal_hitwhistle))
+  if (!IsSoundValid(normal_hitwhistle)) {
     UnloadSound(normal_hitwhistle);
+    normal_hitwhistle_valid = false;
+  }
 
-  if (!IsSoundValid(normal_hitfinish))
+  if (!IsSoundValid(normal_hitfinish)) {
     UnloadSound(normal_hitfinish);
+    normal_hitfinish_valid = false;
+  }
 
-  if (!IsSoundValid(normal_hitclap))
+  if (!IsSoundValid(normal_hitclap)) {
     UnloadSound(normal_hitclap);
+    normal_hitclap_valid = false;
+  }
 
-  if (!IsSoundValid(soft_hitnormal))
+  if (!IsSoundValid(soft_hitnormal)) {
     UnloadSound(soft_hitnormal);
+    soft_hitnormal_valid = false;
+  }
 
-  if (!IsSoundValid(soft_hitwhistle))
+  if (!IsSoundValid(soft_hitwhistle)) {
     UnloadSound(soft_hitwhistle);
+    soft_hitwhistle_valid = false;
+  }
 
-  if (!IsSoundValid(soft_hitfinish))
+  if (!IsSoundValid(soft_hitfinish)) {
     UnloadSound(soft_hitfinish);
+    soft_hitfinish_valid = false;
+  }
 
-  if (!IsSoundValid(soft_hitclap))
+  if (!IsSoundValid(soft_hitclap)) {
     UnloadSound(soft_hitclap);
+    soft_hitclap_valid = false;
+  }
 
-  if (!IsSoundValid(drum_hitnormal))
+  if (!IsSoundValid(drum_hitnormal)) {
     UnloadSound(drum_hitnormal);
+    drum_hitnormal_valid = false;
+  }
 
-  if (!IsSoundValid(drum_hitwhistle))
+  if (!IsSoundValid(drum_hitwhistle)) {
     UnloadSound(drum_hitwhistle);
+    drum_hitwhistle_valid = false;
+  }
 
-  if (!IsSoundValid(drum_hitfinish))
+  if (!IsSoundValid(drum_hitfinish)) {
     UnloadSound(drum_hitfinish);
+    drum_hitfinish_valid = false;
+  }
 
-  if (!IsSoundValid(drum_hitclap))
+  if (!IsSoundValid(drum_hitclap)) {
     UnloadSound(drum_hitclap);
+    drum_hitclap_valid = false;
+  }
+
   // TEXTURES
   if (config.hires) {
     accSS = LoadTexture(SkinPath("ranking-X-small@2x.PNG"));
@@ -135,6 +176,7 @@ void init_skin(void) {
     CursorTexture = LoadTexture(SkinPath("cursor@2x.png"));
     HitCircleTexture = LoadTexture(SkinPath("hitcircle@2x.png"));
     OverlayCircle = LoadTexture(SkinPath("hitcircleoverlay@2x.png"));
+    ApproachCircle = LoadTexture(SkinPath("approachcircle@2x.png"));
 
     Miss = LoadTexture(SkinPath("hit0-0@2x.png"));
     judge50 = LoadTexture(SkinPath("hit50-0@2x.png"));
@@ -156,6 +198,7 @@ void init_skin(void) {
     CursorTexture = LoadTexture(SkinPath("cursor.png"));
     HitCircleTexture = LoadTexture(SkinPath("hitcircle.png"));
     OverlayCircle = LoadTexture(SkinPath("hitcircleoverlay.png"));
+    ApproachCircle = LoadTexture(SkinPath("approachcircle.png"));
 
     Miss = LoadTexture(SkinPath("hit0-0.png"));
     judge50 = LoadTexture(SkinPath("hit50-0.png"));
@@ -172,6 +215,12 @@ void init_skin(void) {
     FilterTextureBilinear(CursorTexture);
     FilterTextureBilinear(HitCircleTexture);
     FilterTextureBilinear(OverlayCircle);
+
+    GenTextureMipmaps(&ApproachCircle);
+    SetTextureFilter(ApproachCircle, TEXTURE_FILTER_TRILINEAR);
+
+    // FilterTextureBilinear(ApproachCircle);
+
     FilterTextureBilinear(Miss);
     FilterTextureBilinear(judge100);
     FilterTextureBilinear(judge50);
@@ -200,6 +249,7 @@ void Unload_Skin(void) {
   UnloadTexture(accC);
   UnloadTexture(accD);
 
+  UnloadTexture(ApproachCircle);
   UnloadTexture(HitCircleTexture);
   UnloadTexture(OverlayCircle);
   UnloadTexture(Miss);

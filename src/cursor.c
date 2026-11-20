@@ -64,8 +64,8 @@ void Draw_Cursor(void) {
 
   // Sens
 
-  CursorPos.x += (float)dx * config.MouseSens;
-  CursorPos.y += (float)dy * config.MouseSens;
+  CursorPos.x += dx * config.MouseSens;
+  CursorPos.y += dy * config.MouseSens;
 
   // Prevents Mouse from Going off the screen
 
@@ -75,13 +75,14 @@ void Draw_Cursor(void) {
   if (CursorPos.y < 0.0f)
     CursorPos.y = 0.0f;
 
-  if (CursorPos.x > (float)ScreenWidth)
-    CursorPos.x = (float)ScreenWidth;
+  if (CursorPos.x > ScreenWidth)
+    CursorPos.x = ScreenWidth;
 
-  if (CursorPos.y > (float)ScreenHeight)
-    CursorPos.y = (float)ScreenHeight;
+  if (CursorPos.y > ScreenHeight)
+    CursorPos.y = ScreenHeight;
 
   float CusorSize = config.cursor_size * 8.0f;
+  // TODO i think this 8 is a magik num...i will look into it later lol
 
   DrawTexturePro(CursorTexture,
                  (Rectangle){0, 0, CursorTexture.width, CursorTexture.height},

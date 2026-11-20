@@ -28,6 +28,7 @@
 #include "beatmap.h"
 #include "raylib.h"
 #include "skinmanager.h"
+#include <stdio.h>
 
 void Unload_COSU(void) {
 
@@ -35,4 +36,5 @@ void Unload_COSU(void) {
   Unload_Beatmap();
   CloseAudioDevice();
   CloseWindow();
+  printf("\n\n=== Closing C-OSU ===\n\nSee ya next time!\n\n");
 }

@@ -3,7 +3,7 @@
 
 typedef struct {
 
-  int nativeres;
+  int native_res;
   int width;
   int height;
   int fullscreen;

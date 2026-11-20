@@ -232,12 +232,13 @@ int Render_HitObjects(HitCircle *circle) {
     float Scale = 4.0f + (1.0f - 4.0f) * (Elapsed / Approach_Time);
 
     float ApproachRadius = (ScreenDiameter * Scale) / 2.0f;
-    float Thickness = 8.0f;
 
-    // this will be replaced with texture later
-
-    DrawRing((Vector2){CanvasMapX, CanvasMapY}, ApproachRadius - Thickness,
-             ApproachRadius, 0.0f, 360.0f, 64, ComboColor);
+    DrawTexturePro(
+        ApproachCircle,
+        (Rectangle){0, 0, ApproachCircle.width, ApproachCircle.height},
+        (Rectangle){CanvasMapX, CanvasMapY, ApproachRadius * 2.0f,
+                    ApproachRadius * 2.0f},
+        (Vector2){ApproachRadius, ApproachRadius}, 0.0f, ComboColor);
   }
 
   // Hit circle
@@ -317,6 +318,9 @@ int Hit_Checker(HitCircle *circle, HitCircle *prev, bool FirstCircle,
   if (Music_Clock < circle->ApproachingTime)
     return 200;
 
+  if (!HitInput)
+    return 0;
+
   if (!FirstCircle && prev->active)
     return 0;
 
@@ -349,37 +353,35 @@ int Hit_Checker(HitCircle *circle, HitCircle *prev, bool FirstCircle,
 
   // NORMAL
   if (normalset == 1) {
-    if (IsSoundValid(normal_hitnormal)) {
+    if (normal_hitnormal_valid) {
       SetSoundVolume(normal_hitnormal, circle->HitSoundVol * EffectVol);
       PlaySound(normal_hitnormal);
     }
   } else if (normalset == 2) {
-    if (IsSoundValid(soft_hitnormal)) {
+    if (soft_hitnormal_valid) {
       SetSoundVolume(soft_hitnormal, circle->HitSoundVol * EffectVol);
       PlaySound(soft_hitnormal);
     }
   } else if (normalset == 3) {
-    if (IsSoundValid(drum_hitnormal)) {
+    if (drum_hitnormal_valid) {
       SetSoundVolume(drum_hitnormal, circle->HitSoundVol * EffectVol);
       PlaySound(drum_hitnormal);
     }
   }
-
   // WHISTLE
   if (circle->soundtype & 2) {
-
     if (additionset == 1) {
-      if (IsSoundValid(normal_hitwhistle)) {
+      if (normal_hitwhistle_valid) {
         SetSoundVolume(normal_hitwhistle, circle->HitSoundVol * EffectVol);
         PlaySound(normal_hitwhistle);
       }
     } else if (additionset == 2) {
-      if (IsSoundValid(soft_hitwhistle)) {
+      if (soft_hitwhistle_valid) {
         SetSoundVolume(soft_hitwhistle, circle->HitSoundVol * EffectVol);
         PlaySound(soft_hitwhistle);
       }
     } else if (additionset == 3) {
-      if (IsSoundValid(drum_hitwhistle)) {
+      if (drum_hitwhistle_valid) {
         SetSoundVolume(drum_hitwhistle, circle->HitSoundVol * EffectVol);
         PlaySound(drum_hitwhistle);
       }
@@ -388,19 +390,18 @@ int Hit_Checker(HitCircle *circle, HitCircle *prev, bool FirstCircle,
 
   // FINISH
   if (circle->soundtype & 4) {
-
     if (additionset == 1) {
-      if (IsSoundValid(normal_hitfinish)) {
+      if (normal_hitfinish_valid) {
         SetSoundVolume(normal_hitfinish, circle->HitSoundVol * EffectVol);
         PlaySound(normal_hitfinish);
       }
     } else if (additionset == 2) {
-      if (IsSoundValid(soft_hitfinish)) {
+      if (soft_hitfinish_valid) {
         SetSoundVolume(soft_hitfinish, circle->HitSoundVol * EffectVol);
         PlaySound(soft_hitfinish);
       }
     } else if (additionset == 3) {
-      if (IsSoundValid(drum_hitfinish)) {
+      if (drum_hitfinish_valid) {
         SetSoundVolume(drum_hitfinish, circle->HitSoundVol * EffectVol);
         PlaySound(drum_hitfinish);
       }
@@ -409,19 +410,18 @@ int Hit_Checker(HitCircle *circle, HitCircle *prev, bool FirstCircle,
 
   // CLAP
   if (circle->soundtype & 8) {
-
     if (additionset == 1) {
-      if (IsSoundValid(normal_hitclap)) {
+      if (normal_hitclap_valid) {
         SetSoundVolume(normal_hitclap, circle->HitSoundVol * EffectVol);
         PlaySound(normal_hitclap);
       }
     } else if (additionset == 2) {
-      if (IsSoundValid(soft_hitclap)) {
+      if (soft_hitclap_valid) {
         SetSoundVolume(soft_hitclap, circle->HitSoundVol * EffectVol);
         PlaySound(soft_hitclap);
       }
     } else if (additionset == 3) {
-      if (IsSoundValid(drum_hitclap)) {
+      if (drum_hitclap_valid) {
         SetSoundVolume(drum_hitclap, circle->HitSoundVol * EffectVol);
         PlaySound(drum_hitclap);
       }

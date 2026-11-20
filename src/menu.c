@@ -68,14 +68,13 @@ void IndexMaps(void) {
     printf("%s\n", MapIndex[i].name);
   }
 
-  // UnloadDirectoryFiles(Maps);
-
   printf("Total Maps = %d\n", Maps.count);
   TotalMaps = Maps.count;
   BG_Image_Map = LoadTexture(TextFormat("Songs/%s/bg.jpg", config.map));
   BG_Music_Map = LoadMusicStream(TextFormat("Songs/%s/bg.mp3", config.map));
   PlayMusicStream(BG_Music_Map);
   MapsIndexed = true;
+  // UnloadDirectoryFiles(Maps);
 }
 
 void DrawMaps(Maps *IndexMaps, float gap) {
@@ -108,6 +107,11 @@ void DrawMaps(Maps *IndexMaps, float gap) {
   DrawText(IndexMaps->name, RecX, RecY, 20, WHITE);
   if (!StartButtonHovered &&
       (Hovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))) {
+
+    if (strcmp(config.map, IndexMaps->name) != 0) {
+      UnloadTexture(BG_Image_Map);
+      UnloadMusicStream(BG_Music_Map);
+    }
 
     strcpy(config.map, IndexMaps->name);
     BG_Image_Map = LoadTexture(TextFormat("Songs/%s/bg.jpg", config.map));

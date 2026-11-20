@@ -49,7 +49,7 @@ int main() {
 
     Draw_COSU();
 
-    DrawText("C-OSU  v0.1.3-pre-alpha", 10, ScreenHeight * 0.97f, 20,
+    DrawText("C-OSU  v0.1.4", 10, ScreenHeight * 0.97f, 20,
              (Color){255, 255, 255, 128});
 
     if (GetMusicTimePlayed(BG_Music) >= GetMusicTimeLength(BG_Music) - 0.1f) {
@@ -68,3 +68,14 @@ int main() {
   Unload_COSU();
   return 0;
 }
+
+// TODO
+// Clean Codes Again!
+// Add Proper Safty Checks
+// Use Right Data Type
+// USE FUCKING * or / FOR UI
+// Replace Ring For Texture
+// GPU Draw Call Optimization
+// CPU Side Optimization
+// Better Map Loader
+// Multi Threaded Map List
